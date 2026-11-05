@@ -1,0 +1,29 @@
+{
+  "columns": 8,
+  "rows_below_dock": 0,
+  "background_color": "#05070C",
+  "wallpaper": true,
+  "wallpaper_rotation_minutes": 0,
+  "wallpaper_true_color": false,
+  "wallpaper_dim": 0,
+  "dock_title": false,
+  "dock_glass": true,
+  "dock_opacity": 40,
+  "dock_even_padding": true,
+  "icon_only_buttons": true,
+  "ambient_glow": false,
+  "app_glow": false,
+  "focus_overshoot": false,
+  "advanced_effects": false,
+  "dock_row": true,
+  "single_row": true,
+  "dock_band_all": true,
+  "icon_only_inputs": true,
+  "show_greeting": false,
+  "animations": false,
+  "top_bar_apps": [
+    "fr.maison.parents"
+  ],
+  "clock_wallpaper": true,
+  "clock_wallpaper_dim": 35
+}

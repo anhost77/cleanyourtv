@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <!-- The browser. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Cleartext for a NAS or a router on the home network (http://192.168…). -->
+    <application
+        android:allowBackup="false"
+        android:banner="@drawable/banner_globe"
+        android:icon="@drawable/icon_globe"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:usesCleartextTraffic="true"
+        android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
+
+        <!-- The browser, opened straight from the globe button beside the Wi-Fi button. No code: the parents'
+             space (LockActivity, SpaceActivity) is no longer reachable and stays only in the sources. -->
+        <activity
+            android:name=".BrowserActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard|navigation"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".LockActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SpaceActivity"
+            android:exported="false" />
+    </application>
+</manifest>

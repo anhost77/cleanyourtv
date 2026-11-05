@@ -201,6 +201,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView raceKicker, raceHeadline, raceSessions;
     /** game_day: each team's next game from an add-on, rotating in the race panel; null when the key is off. */
     private GameDay gameDay;
+    private WeatherPanel weatherPanel;
+    private TvPanel tvPanel;
+    private PicksPanel picksPanel;
     private View raceBar;
     private LinearLayout racePager;
     private long rotationStart;
@@ -578,6 +581,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         raceBar = findViewById(R.id.raceBar);
         racePager = findViewById(R.id.racePager);
         gameDay = GameDay.create(this, cfg.gameDay, handler, this::updatePanel);
+        weatherPanel = WeatherPanel.create(this, getString(R.string.weather_panel), handler);
+        tvPanel = TvPanel.create(this, getString(R.string.tv_panel), handler);
+        picksPanel = PicksPanel.create(this, getString(R.string.weather_panel), handler);
         // The rotation runs on the clock that never jumps: setting the TV's time must not stall or stretch a turn.
         rotationStart = SystemClock.elapsedRealtime();
         showStats = cfg.showStats;
@@ -827,7 +833,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             ((TextView) btnSettings).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_home_settings_pill, 0, 0, 0);
         }
         btnSettings.setOnClickListener(v -> {
-            if (launcherSettingsButton) startActivityForResult(
+            // Local addition: with the home add-on's Réglages installed, a plain press opens the menu that leads
+            // there (and to Android's settings), instead of hiding it behind a long press.
+            if (AddonPhoto.settingsIntent(this, getString(R.string.tv_panel)) != null) showSettingsMenu();
+            else if (launcherSettingsButton) startActivityForResult(
                     new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
             else open(systemIntent(Settings.ACTION_SETTINGS));
         });
@@ -897,8 +906,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                // Back to the dock tile Up came from, not wherever the focus finder lands.
-                focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
+                // The card right under the button (TV, weather), as on screen; else back to the dock tile Up came from.
+                View card = panelUnder(v);
+                if (card != null) card.requestFocus();
+                else focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
             int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
@@ -1095,6 +1106,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             recreate();
             return;
         }
+        // Local addition: a home photo sent from the phone to the add-on becomes the wallpaper (rebuilt once copied).
+        AddonPhoto.sync(this, getString(R.string.tv_panel), this::recreate);
         restartIdleClock();
         promptsPaused = false;
         if (grid.getAdapter() == null) grid.setAdapter(adapter);   // dropped by onTrimMemory
@@ -1130,6 +1143,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         if (showStats) startStats();
         if (gameDay != null) gameDay.start();
+        if (weatherPanel != null) weatherPanel.start();
+        if (tvPanel != null) tvPanel.start();
+        if (picksPanel != null) picksPanel.start();
         sky.update();
         wallpaperPlayer.start();
         handler.postDelayed(minuteTick, MINUTE_MS);
@@ -1315,6 +1331,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         startPending = null;   // leaving Home before the network came back: the boot's app stays closed
         stopStats();
         if (gameDay != null) gameDay.stop();
+        if (weatherPanel != null) weatherPanel.stop();
+        if (tvPanel != null) tvPanel.stop();
+        if (picksPanel != null) picksPanel.stop();
         handler.removeCallbacks(turnTick);
         if (lamp != null) lamp.stop();
         cancelPendingFocusScroll();
@@ -1375,6 +1394,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         RemoteKeys.release(this);
         cancelHoldOk();
         if (gameDay != null) gameDay.shutdown();
+        if (weatherPanel != null) weatherPanel.shutdown();
         unregisterReceiver(packageReceiver);
         if (openOnStartOnWake) unregisterReceiver(wakeReceiver);
         wallpaperPlayer.close();
@@ -1568,7 +1588,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                         dockEditSlot = pos;
                         dimOthers();
                         focusTile(Math.min(COLUMNS, n - 1));
-                        Toast.makeText(this, R.string.dock_edit_pick_app, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, singleRow ? R.string.dock_edit_pick_app_row : R.string.dock_edit_pick_app, Toast.LENGTH_LONG).show();
                     }
                 } else if (pos < n) {
                     swapIntoDock(dockEditSlot, pos);
@@ -1595,7 +1615,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             dockEditSlot = pos;
             dimOthers();
             focusTile(Math.min(COLUMNS, n - 1));
-            Toast.makeText(this, R.string.dock_edit_pick_app, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, singleRow ? R.string.dock_edit_pick_app_row : R.string.dock_edit_pick_app, Toast.LENGTH_LONG).show();
         } else {
             dockEditAppKey = key;
             focusTile(0);
@@ -2425,7 +2445,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (singleRow) {
             // One row: Up leaves for the top bar, Down has nowhere to go, and Left/Right walk the whole row,
             // stopping at its two ends (the default focus search scrolls the row to the next tile).
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return focusPanelAbove(position);
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return true;
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
             int last = adapter.focusablePosition(count - 1);
@@ -2464,6 +2484,117 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         grid.playSoundEffect(keyCode == KeyEvent.KEYCODE_DPAD_UP
                 ? SoundEffectConstants.NAVIGATION_UP : SoundEffectConstants.NAVIGATION_DOWN);
         return true;
+    }
+
+    // ---- local addition: the TV and weather cards on the D-pad (TvPanel, WeatherPanel) ----------------------
+
+    /** Up from the row: the card above the tile's half of the screen, else the other card, else the top bar. */
+    private boolean focusPanelAbove(int position) {
+        RecyclerView.LayoutManager lm = grid.getLayoutManager();
+        View tile = lm == null ? null : lm.findViewByPosition(position);
+        boolean left = true;
+        if (tile != null) {
+            int[] at = new int[2];
+            tile.getLocationOnScreen(at);
+            left = at[0] + tile.getWidth() / 2 < getResources().getDisplayMetrics().widthPixels / 2;
+        }
+        // Right half: "À voir cette semaine" sits right above the row, under the weather.
+        View near = left ? panelCard(true) : (picksCard() != null ? picksCard() : panelCard(false));
+        View far = left ? (picksCard() != null ? picksCard() : panelCard(false)) : panelCard(true);
+        View target = near != null ? near : far;
+        if (target == null) return false;
+        target.requestFocus();
+        hideGlass();
+        hideHero();
+        return true;
+    }
+
+    /** The TV card (left) or the weather card (right) when it is on screen, else null. */
+    View panelCard(boolean tv) {
+        View v = tv ? (tvPanel == null ? null : tvPanel.card()) : (weatherPanel == null ? null : weatherPanel.card());
+        return v != null && v.getVisibility() == View.VISIBLE ? v : null;
+    }
+
+    /** The "À voir" widget under the weather when it is on screen, else null. */
+    View picksCard() {
+        View v = picksPanel == null ? null : picksPanel.card();
+        return v != null && v.getVisibility() == View.VISIBLE ? v : null;
+    }
+
+    /** The TV card or the weather card whose width spans {@code v}'s middle, or null (the photo between them). */
+    private View panelUnder(View v) {
+        int[] at = new int[2];
+        v.getLocationOnScreen(at);
+        int cx = at[0] + v.getWidth() / 2;
+        for (boolean tv : new boolean[] {true, false}) {
+            View card = panelCard(tv);
+            if (card == null) continue;
+            card.getLocationOnScreen(at);
+            if (cx >= at[0] && cx <= at[0] + card.getWidth()) return card;
+        }
+        // A button over the gap: the nearer card of its half.
+        return panelCard(cx < getResources().getDisplayMetrics().widthPixels / 2);
+    }
+
+    /** Down from a card: back to the tile the row last had. */
+    void focusRowFromPanel() {
+        if (adapter.appCount() > 0) focusTile(Math.max(0, Math.min(lastFocused, adapter.appCount() - 1)));
+    }
+
+    /** Down from a card: the tile right under it (the last one the row had when it sits under the card). */
+    void focusRowFromPanel(View from) {
+        int n = adapter.appCount();
+        if (n == 0) return;
+        RecyclerView.LayoutManager lm = grid.getLayoutManager();
+        int[] at = new int[2];
+        from.getLocationOnScreen(at);
+        int left = at[0], right = at[0] + from.getWidth();
+        View last = lm == null ? null : lm.findViewByPosition(lastFocused);
+        if (last != null) {
+            last.getLocationOnScreen(at);
+            int c = at[0] + last.getWidth() / 2;
+            if (c >= left && c <= right) {
+                focusTile(Math.max(0, Math.min(lastFocused, n - 1)));
+                return;
+            }
+        }
+        int cx = (left + right) / 2, best = -1, bestGap = Integer.MAX_VALUE;
+        for (int i = 0; lm != null && i < n; i++) {
+            View tile = lm.findViewByPosition(i);
+            if (tile == null) continue;
+            tile.getLocationOnScreen(at);
+            int gap = Math.abs(at[0] + tile.getWidth() / 2 - cx);
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = i;
+            }
+        }
+        focusTile(best >= 0 ? best : Math.max(0, Math.min(lastFocused, n - 1)));
+    }
+
+    /** Up from a card: the top-bar button straight above it (closest across), as on screen. */
+    void focusTopBarFromPanel(View from) {
+        View bar = findViewById(R.id.btnSettings);
+        bar = bar == null ? null : (View) bar.getParent();
+        java.util.ArrayList<View> buttons = new java.util.ArrayList<>();
+        if (bar != null) bar.addFocusables(buttons, View.FOCUS_UP);
+        View inputs = findViewById(R.id.btnInputs);
+        if (inputs != null && !buttons.contains(inputs)) buttons.add(inputs);
+        int[] at = new int[2];
+        from.getLocationOnScreen(at);
+        int cx = at[0] + from.getWidth() / 2;
+        View best = null;
+        int bestGap = Integer.MAX_VALUE;
+        for (View b : buttons) {
+            if (!b.isShown() || !b.isFocusable()) continue;
+            b.getLocationOnScreen(at);
+            int gap = Math.abs(at[0] + b.getWidth() / 2 - cx);
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = b;
+            }
+        }
+        if (best != null) best.requestFocus();
     }
 
     @Override public void onLibraryFocused() {
@@ -3694,6 +3825,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (200 * density));
+        // Local addition: the add-on behind the home cards has its own Réglages (photo, TMDB key, channels, radios).
+        Intent homeSettings = AddonPhoto.settingsIntent(this, getString(R.string.tv_panel));
+        if (homeSettings != null) {
+            addSettingsMenuRow(rows, popup, R.string.home_addon_settings, () -> open(homeSettings));
+            // The press no longer opens Android's settings directly: they are the next line.
+            if (!launcherSettingsButton) addSettingsMenuRow(rows, popup, R.string.android_settings,
+                    () -> open(systemIntent(Settings.ACTION_SETTINGS)));
+        }
         if (!launcherSettingsButton) addSettingsMenuRow(rows, popup, R.string.launcher_settings, () -> startActivityForResult(
                 new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST));
         // Firmware that ships its own settings app next to the AOSP one (Xiaomi China is one): the

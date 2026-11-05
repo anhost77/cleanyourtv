@@ -462,6 +462,24 @@
          Empty = off: nothing is read or watched. The launcher only reads what the add-on publishes and never goes
          online. A theme can set "game_day". -->
     <string name="game_day" translatable="false"></string>
+    <!-- Local addition: the weather as a glass card on the right half of Home, read from the Weather add-on's
+         provider (<pkg>.now). Empty = off. The launcher stays offline; the add-on fetches. -->
+    <string name="weather_panel" translatable="false">io.github.anhost77.salon</string>
+    <string name="weather_feels" translatable="false">Ressenti %1$d°</string>
+    <!-- Local addition: tonight's prime time as a glass card on the left half of Home, from the same add-on
+         (<pkg>.now/tv). Empty = off. -->
+    <string name="tv_panel" translatable="false">io.github.anhost77.salon</string>
+    <string name="tv_tonight" translatable="false">CE SOIR À LA TÉLÉ</string>
+    <string name="home_addon_settings" translatable="false">Réglages de l’accueil</string>
+    <string name="android_settings" translatable="false">Paramètres d’Android</string>
+    <!-- One row (single_row): the apps that can take the place are added at the end of the row, out of sight. -->
+    <string name="dock_edit_pick_app_row" translatable="false">Les applis qui peuvent prendre cette place sont ajoutées au bout de la rangée, à droite : choisissez-en une et appuyez sur OK. Retour pour annuler.</string>
+    <string name="picks_title" translatable="false">À VOIR CETTE SEMAINE</string>
+    <string name="picks_all" translatable="false">Tout voir ›</string>
+    <string name="radio_title" translatable="false">RADIOS</string>
+    <string name="radio_hint_radio" translatable="false">◀ RADIOS</string>
+    <string name="radio_hint_tv" translatable="false">◀ TÉLÉ</string>
+    <string name="radio_playing" translatable="false">♪ En écoute</string>
 
     <!-- Time-of-day backdrop behind everything: a dark gradient that follows the clock, with a warm
          horizon glow around sunrise and sunset. 0 keeps the plain background (the default); 1 to 100

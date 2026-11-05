@@ -290,7 +290,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     || !LibraryApps.visible(tvPackages.contains(pkg), hidden.contains(pkg), added.contains(pkg), removed.contains(pkg))) continue;
             ComponentName component = new ComponentName(pkg, ri.activityInfo.name);
             Cards.Card card = cardByPkg.get(pkg);
-            if (card != null && !card.component.equals(component)) continue;   // the card stands in for this tile
+            // Local change: an add-on's other entry points (the Weather add-on's Programme TV and Films et séries)
+            // stay ordinary tiles; only the card's own activity is drawn as the card.
+            if (card != null && !card.component.equals(component)) card = null;
             // Same cleaner as the card prompt: an app label with a bidi override or line separator must not
             // redraw the tile name as something else (#117).
             String label = card != null ? card.label : Cards.cleanLabel(

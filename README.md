@@ -1,3 +1,7 @@
+> **🇫🇷 Salon** : cette branche ajoute à cleanyour.tv un accueil à la française, sans pistage (programme TV, « À voir » et recherche sur toutes vos plateformes, radios, météo, photo, réglages depuis le téléphone). Pour l'installer, collez **[PROMPT-SALON.md](PROMPT-SALON.md)** dans votre assistant. Projet personnel de [@anhost77](https://github.com/anhost77), ni relu ni maintenu par le projet officiel.
+
+![L'accueil Salon](themes/salon/screenshot.jpg)
+
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads. Strip the bloatware from any Android TV or Google TV over Wi-Fi and replace the ad-filled home screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled, and a one-line restore." width="800"></a>
 </p>

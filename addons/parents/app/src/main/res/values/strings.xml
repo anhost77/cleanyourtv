@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Navigateur</string>
+    <string name="lock_title">Espace parents</string>
+    <string name="lock_hint">Entrez le code</string>
+    <string name="lock_new">Choisissez un code</string>
+    <string name="lock_new_hint">Au moins 4 chiffres. Il sera demandé à chaque ouverture.</string>
+    <string name="lock_again">Confirmez le code</string>
+    <string name="lock_short">Le code doit faire au moins %1$d chiffres.</string>
+    <string name="lock_mismatch">Les deux codes ne sont pas pareils, recommencez.</string>
+    <string name="lock_wrong">Code incorrect.</string>
+    <string name="lock_wait">Trop d’essais : réessayez dans une minute.</string>
+    <string name="lock_ok">Valider</string>
+    <string name="space_title">Espace parents</string>
+    <string name="space_hint">Les sites s’ouvrent comme une appli. Maintenez OK (ou Menu) sur un site pour le modifier, passer en mode souris ou le supprimer.</string>
+    <string name="space_lock">🔒  Verrouiller</string>
+    <string name="space_browser">Navigateur</string>
+    <string name="space_vpn_install">Installer Proton VPN</string>
+    <string name="space_add">Ajouter un site</string>
+    <string name="space_code">Changer le code</string>
+    <string name="space_code_msg">Le code actuel sera oublié et un nouveau vous sera demandé tout de suite.</string>
+    <string name="site_name">Nom (ex. : NAS)</string>
+    <string name="site_url">Adresse (ex. : 192.168.1.10:5000)</string>
+    <string name="site_save">Enregistrer</string>
+    <string name="site_edit">Modifier</string>
+    <string name="site_remove">Supprimer</string>
+    <string name="site_to_mouse">Passer en mode souris</string>
+    <string name="site_to_app">Passer en mode appli</string>
+    <string name="site_size">Taille d’affichage : %1$s (OK pour changer)</string>
+    <string name="size_large">grande (1280)</string>
+    <string name="size_medium">moyenne (1600)</string>
+    <string name="size_pc">PC (1920)</string>
+    <string name="site_id_pc">Vu comme : un PC (OK pour passer en téléviseur, pour les vidéos protégées)</string>
+    <string name="site_id_tv">Vu comme : ce téléviseur (OK pour passer en PC)</string>
+    <string name="site_chrome_off">Ouvrir avec : cet espace (OK pour Firefox)</string>
+    <string name="site_chrome_on">Ouvrir avec : Firefox (OK pour revenir à cet espace)</string>
+    <string name="app_mode_hint">Flèches : se déplacer · OK : ouvrir · Retour : revenir · Menu : souris</string>
+    <string name="fav_title">Ajouter aux favoris</string>
+    <string name="ssl_title">Certificat non reconnu</string>
+    <string name="ssl_msg">%1$s utilise un certificat que le téléviseur ne connaît pas. C’est normal pour un NAS ou une box ; ailleurs, méfiance. Continuer ?</string>
+    <string name="ssl_go">Continuer</string>
+    <string name="auth_user">Identifiant</string>
+    <string name="auth_pass">Mot de passe</string>
+</resources>
