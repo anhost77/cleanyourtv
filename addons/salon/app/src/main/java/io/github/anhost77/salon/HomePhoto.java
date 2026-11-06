@@ -65,7 +65,8 @@ final class HomePhoto {
 
         File f = file(ctx), tmp = new File(f.getPath() + ".tmp");
         try (FileOutputStream o = new FileOutputStream(tmp)) {
-            out.compress(Bitmap.CompressFormat.JPEG, 90, o);
+            // compress() reports a failed encode by returning false, not by throwing: keep the previous photo.
+            if (!out.compress(Bitmap.CompressFormat.JPEG, 90, o)) return false;
         } catch (Exception e) {
             return false;
         }
